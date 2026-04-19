@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from .database import engine, Base, SessionLocal
@@ -45,9 +45,13 @@ def list_schedules(db: Session = Depends(get_db)):
 @app.delete("/schedules/{schedule_id}")
 def delete_schedule(schedule_id: int, db: Session = Depends(get_db)):
     schedule = db.query(models.Schedule).filter(models.Schedule.id == schedule_id).first()
-    if schedule:
-        db.delete(schedule)
-        db.commit()
+
+    if not schedule:
+        raise HTTPException(status_code=404, detail="Schedule not found")
+
+    db.delete(schedule)
+    db.commit()
+
     return {"ok": True}
 
 
